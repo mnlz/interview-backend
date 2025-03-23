@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzw.interview.mapper.QuestionMapper">
+    <resultMap id="questionMap" type="com.zzw.interview.entity.Question">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="editTime" column="edit_time"/>
+        <result property="read" column="read"/>
+        <result property="post" column="post"/>
+        <result property="company" column="company"/>
+        <result property="status" column="status"/>
+    </resultMap>
+    
+    <select id="findAll" resultMap="questionMap">
+        SELECT * FROM niuke WHERE status = 1 ORDER BY edit_time DESC
+    </select>
+    
+    <select id="findById" resultMap="questionMap">
+        SELECT * FROM niuke WHERE id = #{id}
+    </select>
+    
+    <select id="findByCondition" resultMap="questionMap">
+        SELECT * FROM niuke 
+        <where>
+            status = 1
+            <if test="post != null and post != ''">
+                AND post = #{post}
+            </if>
+            <if test="company != null and company != ''">
+                AND company = #{company}
+            </if>
+        </where>
+        ORDER BY edit_time DESC
+    </select>
+    
+    <update id="updateReadCount">
+        UPDATE niuke SET `read` = `read` + 1 WHERE id = #{id}
+    </update>
+    
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM niuke
+        <where>
+            status = 1
+            <if test="post != null and post != ''">
+                AND post = #{post}
+            </if>
+            <if test="company != null and company != ''">
+                AND company = #{company}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR company LIKE CONCAT('%', #{keyword}, '%')
+                     OR post LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="startDate != null">
+                AND edit_time >= #{startDate}
+            </if>
+        </where>
+    </select>
+    
+    <select id="findByPageAndCondition" resultMap="questionMap">
+        SELECT * FROM niuke
+        <where>
+            status = 1
+            <if test="post != null and post != ''">
+                AND post = #{post}
+            </if>
+            <if test="company != null and company != ''">
+                AND company = #{company}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR company LIKE CONCAT('%', #{keyword}, '%')
+                     OR post LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="startDate != null">
+                AND edit_time >= #{startDate}
+            </if>
+        </where>
+        ORDER BY edit_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+    
+    <select id="findByCompanies" resultMap="questionMap">
+        SELECT * FROM niuke
+        <where>
+            status = 1
+            <if test="companies != null and companies.length > 0">
+                AND company IN 
+                <foreach collection="companies" item="company" open="(" separator="," close=")">
+                    #{company}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY edit_time DESC
+    </select>
+</mapper>
